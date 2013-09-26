@@ -1,4 +1,9 @@
 
+nginx-phpapi-demo
+=================
+
+Thought exercise for setting of developer instances of Nginx for PHP based APIs and services.
+
 # Goal of this demo
 
 Show how you might setup a dev environment for serving static content talking to a PHP based API using Nginx and PHP's command line webserver. 
@@ -89,6 +94,4 @@ the Mac OS X Xcode command line tools are already installed. Mac Ports itself in
 * [Limit Browsers](http://wiki.nginx.org/LimitBrowsers)
 * [Separate Error Logging Perl Virtual Hosts](http://wiki.nginx.org/SeparateErrorLoggingPerVirtualHost)
 * [Nginx JavaScript](https://github.com/kung-fu-tzu/ngx_http_js_module#readme)
-
-
 
