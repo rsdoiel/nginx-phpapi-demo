@@ -1,0 +1,45 @@
+
+#
+# Define some developer servers and services
+#
+server {
+    listen api.local:80;
+    server_name api.local;
+    root  /sites/api.local;
+    index index.html;
+
+    # demo JSON service
+    location /demo/ {
+        proxy_pass http://api.local:8000;
+    }
+    # Handle 404 errors
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+
+#
+# Developer documentation site (static)
+#
+server {
+    listen developer.local:80;
+    server_name developer.local;
+    root /sites/developer.local;
+    index index.html;
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+
+#server {
+#    listen 8000;
+#    listen somename:8080;
+#    server_name somename alias another.alias;
+#    root html;
+#    index index.html index.htm;
+#
+#    location / {
+#        try_files $uri $uri/ =404;
+#    }
+#}
+
