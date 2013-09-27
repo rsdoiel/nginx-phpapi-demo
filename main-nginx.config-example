@@ -4,7 +4,7 @@ error_log: ./logs/error.log
 server {
 	listen: 8000;
 	server_name: localhost;
-        index: index.html;
+    index: index.html;
 	root: www;
 }
 
@@ -24,5 +24,3 @@ server {
 	}
 
 }
-
-

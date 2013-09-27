@@ -10,7 +10,8 @@ server {
 
     # demo JSON service
     location /demo/ {
-        proxy_pass http://api.local:8000;
+        proxy_pass http://localhost:8000;
+        proxy_set_header  X-Real-IP  $remote_addr;
     }
     # Handle 404 errors
     location / {
