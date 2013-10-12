@@ -1,0 +1,33 @@
+#
+# Static web site with PHP support via 127.0.0.*
+#
+server {
+    listen experiment-001.local:80;
+    server_name experiment-001.local;
+    root  /sites/experiment-011.local/www;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    #
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        #fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+
+    #
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    location ~ /\.ht {
+        deny all;
+    }
+}

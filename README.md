@@ -2,81 +2,184 @@
 nginx-phpapi-demo
 =================
 
-Thought exercise for setting of developer instances of Nginx for PHP based APIs and services.
+Thought exercise for setting of developer instances of Nginx for PHP
+based APIs and services.
 
 # Goal of this demo
 
-Show how you might setup a dev environment for serving static content talking to a PHP based API using Nginx and PHP's command line webserver. 
+Show how you might setup a dev environment for serving static content 
+talking to a PHP based API using Nginx and PHP's command line webserver
+or via Nginx's FastCGI interface. 
 
 # PHP command line web server
 
-As of version 5.4 PHP command line comes with a built in web server suitable for development purposes. The two command line options that are instramental in taking advantage of this are _-S_ and _-t_.  The first sets the hostname and port to listen to and the latter the web root directory (e.g. htdocs in Apache terminalogy)
+As of version 5.4 PHP command line comes with a built in web server 
+suitable for development purposes. The two command line options that 
+are instramental in taking advantage of this are _-S_ and _-t_.  The 
+first sets the hostname and port to listen to and the latter the 
+web root directory (e.g. htdocs in Apache terminalogy)
 
 
-The PHP website indicates the built-in webserver is appropraite for development and not production purposes. We are
-following that recommendation here though Google has used it as a starting point to integrate PHP support into their
-App Engine environment.
+The PHP website indicates the built-in webserver is appropraite for 
+development and not production purposes. We are following that 
+recommendation here though Google has used it as a starting point to 
+integrate PHP support into their App Engine environment. That approach
+is intreaguing as a way for give the applications side the abality to
+start/stop services on high Unix ports while leaving the main Nginx
+control in the hands of system administrations and operations staff.
+
 
 ## Example
 
 
 Via Mac Ports you would run this command from Terminal App.
 
-```shell
+``shell
     php54 -S localhost:8000 -t www
 ```
 
-Via Ubuntu Linux this is the shell command I would use.
+Via Ubuntu 12.10 this is the shell command I would use.
 
 ```shell
     php -S localhost:8000 -t www
 ```
 
-Both examples run a local PHP webserver on port 8000 listening on localhost.  The URL to reach the webserver would be _http://localhost:8000_.  Anything in the _www_ folder would be available on the web.  *Don't run this command in a folder that contains private or sensitive information!*
+Both examples run a local PHP webserver on port 8000 listening on
+localhost.  The URL to reach the webserver would be 
+_http://localhost:8000_.  Anything in the _www_ folder would be
+available on the web.  *Don't run this command in a folder that 
+contains private or sensitive information!*
 
 # Nginx
 
-Nginx is a high performance webserver suitable for tasks which have traditional be assigned to Apache as well as more specialized needs. It's configuration is straight forward with many websites featuring useful recipes that covering most needs. In the past getting Nginx setup and tuned was challenging for non-Russian speakers.  Recently this has changed with increased documentation also availabe in Engish. In this project we'll show just how easy it can be.
+Nginx is a high performance webserver suitable for tasks which have 
+traditional be assigned to Apache as well as more specialized needs.
+It's configuration is straight forward with many websites featuring 
+useful recipes that covering most needs. In the past getting Nginx 
+setup and tuned was challenging for non-Russian speakers.  Recently 
+this has changed with increased documentation also availabe in Engish.
+In this project we'll show just how easy it can be.
 
-At its core Nginx is a software load balancer. It is design from the ground up to quickly and efficiently route traffic with a high level of concurrency (e.g. thousands of concurrent connections versus the typical Apache five to eight hundred concurrent connections on a modest Virtual Machine).  In this capacity it has gained wide spread uses across larger organizations for managing complex routing and high traffic websites.  Like Apache it has a module system that supports  PHP, Perl, Python and Ruby. It is very suitable as a front end to Tomcat as well as newer deployment environments like NodeJS.
+At its core Nginx is a software load balancer. It is design from the 
+ground up to quickly and efficiently route traffic with a high level 
+of concurrency (e.g. thousands of concurrent connections versus the 
+typical Apache five to eight hundred concurrent connections on a 
+modest Virtual Machine).  In this capacity it has gained wide spread 
+uses across larger organizations for managing complex routing and high 
+traffic websites.  Like Apache it has a module system that supports
+PHP, Perl, Python and Ruby. It is very suitable as a front end to 
+Tomcat as well as newer deployment environments like NodeJS.
 
-# Preparing your system
+# Preparing your system (Ubuntu)
 
-The basic steps are the same though specific command very between platform.  Getting things going involes
-the follow
+The basic steps are the same though specific command very between 
+platform.  Getting things going involes the follow
 
-1. Installing PHP 5.4 (or PHP 5.5) command line
-2. Installing desired PHP modules (E.g. MongoDB, MySQLi, Curl)
+1. Installing PHP 5.4 (or PHP 5.5) command line with PHP FPM support
+2. Installing desired PHP modules (E.g. PHP FPM, MongoDB, MySQLi, Curl)
 3. Installing Nginx binary
 4. Updating your local _hosts_ file to support the desired aliases for your development environment
 5. Configuring Nginx to virtual host your static content and proxy to your PHP or NodeJS services.
 
-Steps 4 and 5 are substantiall similar between Mac OS X 10.6 and the Ubuntu 13.04 system.  The Mac has
-a couple extra command line utilities to cause the DNS to update based on your local _/etc/hosts_ file.
-
-
-
-
-## Ubuntu Linux
-
-Here commands to install PHP 5.4 allong with three example modules (MongoDB, MySQLi and Curl). This covers
+Here commands to do 1-4.
 
 ```shell
-    sudo apt-get install php5-cli php5-mysql php5-mongo php5-curl 
-```
-
-Siminlarly installing Nginx can be done with this command
-
-```shell
+    sudo apt-get install php5-cli php5-fpm php5-mysql php5-mongo php5-curl 
     sudo apt-get install nginx-light
+    sudo nano /etc/hosts    
 ```
 
 The command _sudo_ with cause a prompt for your password and assuming _sudo_ is setup correctly
-allow you to install these packages to be available system wide (i.e. installs as if it was installed by the *root* user).
+allow you to install these packages to be system wide (i.e. installs as if it was installed by the *root* user).
 
 The command _apt-get_ is the basic Debian command line installer available on all Debian based systems include Ubuntu.
 
+The command _nano_ can be replaced with any text editor you like (e.g. vi, emacs, brackets).
+Nano is available on most Linux systems (as is vi) and is easy to use.
+
+I typically create a common sites folder (E.g. /sites or /var/sites) then create a local
+virtual host record running on 127.0.0.* for development.  This lets me test thing without 
+exposing it to the rest of the network.  Here's an example I would _add_ to my hosts file 
+*experiment-001.local*
+
+```hosts
+    # localhost project alias
+    127.0.0.2 experiment-001 experiment-001.local
+```
+
+There would be a corresponding site definition in 
+*/etc/nginx/sites-available/experiment-001.local* which would be 
+symbolically linked from */etc/nginx/sites-endable/experiment-001.local"
+Restarting Nginx would then allow me to point my browser at
+*http://experiment-001.local* for testing.
+
+Here's what my PHP enabled */etc/nginx/sites-available/experiment-001.local* would
+look like.
+
+```shell
+    #
+    # Static web site with PHP support via 127.0.0.*
+    #
+    server {
+        listen experiment-001.local:80;
+        server_name experiment-001.local;
+        root  /sites/experiment-011.local/www;
+        index index.php index.html;
+    
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    
+        #
+        # pass the PHP scripts to FastCGI server
+        #
+        location ~ \.php$ {
+            try_files $uri =404;
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            #fastcgi_pass 127.0.0.1:9000;
+            fastcgi_pass unix:/var/run/php5-fpm.sock;
+            fastcgi_index index.php;
+            include fastcgi_params;
+        }
+    
+        #
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        location ~ /\.ht {
+            deny all;
+        }
+    }
+```
+
+Here are the command I'd use to edit my hosts file, then the Nginx site definition,
+test the Nginx configurations for errors and then restart Nginx.
+
+```shell
+    sudo nano /etc/hosts
+    sudo nano /etc/nginx/sites-available/experiment-001.local
+    sudo nginx -t
+    sudo /etc/init.d/nginx restart
+```
+
+
 ## Mac OS 10 via Mac Ports
+
+We can also implement this setup on a Mac OS X machine via Mac Ports. 
+I will also assume you've been able to disable the default Apache installation
+to free port 80 without disabling port 80 if the Mac firewall is turned on.
+That bit could be a whole article in itself.
+
+
+Here's the steps we need ith follow
+
+1. Install XCode command line tools (if you haven't done so)
+2. Install Mac Ports (if you haven't done so)
+3. Install PHP 5.4 and the following PHP modules php54-mbstring, php54-curl, php54-mysql, php54-mongo
+4. Configure Nginx
+5. Add your site definitions
+6. Restart (or start) Nginx and test with your browser
+
 
 Mac Ports adds many of the more traditional utilities and services to a standard Mac OS X system.  It requires that
 the Mac OS X Xcode command line tools are already installed. Mac Ports itself installs as a standard Mac pkg file. See
@@ -94,6 +197,7 @@ Installing PHP 5.4 and interesting modules
 
 ```shell
     sudo port install php54
+    sudo port install php54-mbstring
     sudo port install php54-curl
     sudo port install php54-mysql
     sudo port install php54-mongo
@@ -152,15 +256,6 @@ First open an empty configuration file named */opt/local/etc/nginx/sites-enabled
 That file should look something like this.
 
 ```nginx
-    server {
-        listen mydev.example.com:80;
-        server_name mydev.example.com;
-        index index.html;
-        root /sites/mydev.example.com/www;
-    
-        error_page 404 /404.html;
-        error_page   500 502 503 504  /50x.html;
-    }
 ```
 
 In this example we have create a website whos document root is in */sites/mydev.example.com/www*. If
@@ -225,16 +320,39 @@ on port 80 for anything start with */demo*.
 Create a file */opt/local/nginx/sites-enabled/php-demo-service.conf* containing this--
 
 ```nginx
-    server {
-        listen mydev.example.com:80;
-        server_name mydev.example.com;
-        
-        # This is where we'll run our PHP webserver
-        location /demo {
-            proxy_pass http://localhost:3000
-            proxy_set_header  X-Real-IP  $remote_addr;
-        }
+#
+# Static web site with PHP support via 127.0.0.*
+#
+server {
+    listen experiment-001.local:80;
+    server_name experiment-001.local;
+    root  /sites/experiment-011.local/www;
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
     }
+
+    #
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        #fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+
+    #
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    location ~ /\.ht {
+        deny all;
+    }
+}
 ```
 
 Reload Nginx
